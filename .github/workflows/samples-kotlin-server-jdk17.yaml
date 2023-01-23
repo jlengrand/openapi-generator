@@ -9,7 +9,7 @@ on:
       - 'samples/server/petstore/kotlin-springboot-3*/**'
 
 env:
-  GRADLE_VERSION: 6.9
+  GRADLE_VERSION: 7.3
 
 jobs:
   build:
