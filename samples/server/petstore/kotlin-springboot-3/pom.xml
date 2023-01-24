@@ -8,16 +8,29 @@
     <properties>
         <findbugs-jsr305.version>3.0.2</findbugs-jsr305.version>
         <jakarta-annotation.version>2.1.0</jakarta-annotation.version>
-        <kotlin-test-junit5.version>1.6.21</kotlin-test-junit5.version>
+        <kotlin-test-junit5.version>1.7.10</kotlin-test-junit5.version>
 
-        <kotlin.version>1.6.21</kotlin.version>
+        <kotlin.version>1.7.10</kotlin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.7</version>
+        <version>3.0.2</version>
     </parent>
+    <repositories>
+        <repository>
+            <id>repository.spring.milestone</id>
+            <name>Spring Milestone Repository</name>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-milestones</id>
+            <url>https://repo.spring.io/milestone</url>
+        </pluginRepository>
+    </pluginRepositories>
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
         <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
@@ -41,7 +54,7 @@
                     <compilerPlugins>
                         <plugin>spring</plugin>
                     </compilerPlugins>
-                    <jvmTarget>1.8</jvmTarget>
+                    <jvmTarget>17</jvmTarget>
                 </configuration>
                 <executions>
                     <execution>

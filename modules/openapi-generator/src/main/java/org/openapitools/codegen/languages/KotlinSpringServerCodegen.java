@@ -73,7 +73,7 @@ public class KotlinSpringServerCodegen extends AbstractKotlinCodegen
     public static final String BEAN_QUALIFIERS = "beanQualifiers";
 
     public static final String USE_JAKARTA_EE = "useJakartaEe";
-    public static final String SPRING_BOOT_3 = "SpringBoot3";
+    public static final String SPRING_BOOT_3 = "useSpringBoot3";
 
     private String basePackage;
     private String invokerPackage;

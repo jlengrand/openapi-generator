@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonValue
 import org.openapitools.model.Category
 import org.openapitools.model.Tag
-import javax.validation.constraints.*
-import javax.validation.Valid
+import jakarta.validation.Valid
+import jakarta.validation.constraints.*
 
 /**
  * A pet for sale in the pet store

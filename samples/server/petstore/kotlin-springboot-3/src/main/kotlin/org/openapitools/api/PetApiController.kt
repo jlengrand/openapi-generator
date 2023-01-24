@@ -11,8 +11,8 @@ import org.springframework.validation.annotation.Validated
 import org.springframework.web.context.request.NativeWebRequest
 import org.springframework.beans.factory.annotation.Autowired
 
-import javax.validation.constraints.*
-import javax.validation.Valid
+import jakarta.validation.Valid
+import jakarta.validation.constraints.*
 
 import kotlin.collections.List
 import kotlin.collections.Map

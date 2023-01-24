@@ -2,8 +2,8 @@ package org.openapitools.model
 
 import java.util.Objects
 import com.fasterxml.jackson.annotation.JsonProperty
-import javax.validation.constraints.*
-import javax.validation.Valid
+import jakarta.validation.Valid
+import jakarta.validation.constraints.*
 
 /**
  * Describes the result of uploading an image resource

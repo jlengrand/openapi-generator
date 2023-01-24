@@ -2,8 +2,8 @@ package org.openapitools.model
 
 import java.util.Objects
 import com.fasterxml.jackson.annotation.JsonProperty
-import javax.validation.constraints.*
-import javax.validation.Valid
+import jakarta.validation.Valid
+import jakarta.validation.constraints.*
 
 /**
  * A User who is purchasing from the pet store
