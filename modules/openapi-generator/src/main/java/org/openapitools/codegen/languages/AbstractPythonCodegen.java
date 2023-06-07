@@ -24,6 +24,7 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.*;
+import org.openapitools.codegen.meta.features.SecurityFeature;
 import org.openapitools.codegen.utils.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,13 @@ public abstract class AbstractPythonCodegen extends DefaultCodegen implements Co
 
     public AbstractPythonCodegen() {
         super();
+
+        modifyFeatureSet(features -> features.securityFeatures(EnumSet.of(
+                SecurityFeature.BasicAuth,
+                SecurityFeature.BearerToken,
+                SecurityFeature.ApiKey,
+                SecurityFeature.OAuth2_Implicit
+        )));
 
         // from https://docs.python.org/3/reference/lexical_analysis.html#keywords
         setReservedWordsLowerCase(
@@ -123,7 +131,6 @@ public abstract class AbstractPythonCodegen extends DefaultCodegen implements Co
         }
         return "_" + name;
     }
-
 
 
     /**
@@ -285,7 +292,7 @@ public abstract class AbstractPythonCodegen extends DefaultCodegen implements Co
     }
 
     private String toExampleValueRecursive(Schema schema, List<Schema> includedSchemas, int indentation) {
-        boolean cycleFound = includedSchemas.stream().filter(s->schema.equals(s)).count() > 1;
+        boolean cycleFound = includedSchemas.stream().filter(s -> schema.equals(s)).count() > 1;
         if (cycleFound) {
             return "";
         }
@@ -716,5 +723,7 @@ public abstract class AbstractPythonCodegen extends DefaultCodegen implements Co
     }
 
     @Override
-    public GeneratorLanguage generatorLanguage() { return GeneratorLanguage.PYTHON; }
+    public GeneratorLanguage generatorLanguage() {
+        return GeneratorLanguage.PYTHON;
+    }
 }

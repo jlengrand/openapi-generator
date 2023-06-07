@@ -64,8 +64,18 @@ public class BigCat extends Cat {
     }
   }
 
-  @JsonProperty("kind")
   private KindEnum kind;
+
+  public BigCat() {
+    super();
+  }
+
+  /**
+   * Constructor with only required parameters
+   */
+  public BigCat(String className) {
+    super(className);
+  }
 
   public BigCat kind(KindEnum kind) {
     this.kind = kind;
@@ -77,6 +87,7 @@ public class BigCat extends Cat {
    * @return kind
   */
   
+  @JsonProperty("kind")
   public KindEnum getKind() {
     return kind;
   }

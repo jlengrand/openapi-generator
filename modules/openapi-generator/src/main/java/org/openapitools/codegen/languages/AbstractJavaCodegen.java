@@ -65,7 +65,6 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
     private final Logger LOGGER = LoggerFactory.getLogger(AbstractJavaCodegen.class);
     private static final String ARTIFACT_VERSION_DEFAULT_VALUE = "1.0.0";
 
-    public static final String FULL_JAVA_UTIL = "fullJavaUtil";
     public static final String DEFAULT_LIBRARY = "<default>";
     public static final String DATE_LIBRARY = "dateLibrary";
     public static final String SUPPORT_ASYNC = "supportAsync";
@@ -88,6 +87,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
     public static final String CONTAINER_DEFAULT_TO_NULL = "containerDefaultToNull";
 
     public static final String CAMEL_CASE_DOLLAR_SIGN = "camelCaseDollarSign";
+    public static final String USE_ONE_OF_INTERFACES = "useOneOfInterfaces";
 
     public static final String DEFAULT_TEST_FOLDER = "${project.build.directory}/generated-test-sources/openapi";
 
@@ -114,9 +114,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
     // this must not be OS-specific
     protected String sourceFolder = projectFolder + "/java";
     protected String testFolder = projectTestFolder + "/java";
-    protected boolean fullJavaUtil;
     protected boolean discriminatorCaseSensitive = true; // True if the discriminator value lookup should be case-sensitive.
-    protected String javaUtilPrefix = "";
     protected Boolean serializableModel = false;
     protected boolean serializeBigDecimalAsString = false;
     protected String apiDocPath = "docs/";
@@ -150,8 +148,11 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         modifyFeatureSet(features -> features
                 .includeDocumentationFeatures(DocumentationFeature.Readme)
                 .wireFormatFeatures(EnumSet.of(WireFormatFeature.JSON, WireFormatFeature.XML))
-                .securityFeatures(EnumSet.noneOf(
-                        SecurityFeature.class
+                .securityFeatures(EnumSet.of(
+                        SecurityFeature.ApiKey,
+                        SecurityFeature.BasicAuth,
+                        SecurityFeature.BearerToken,
+                        SecurityFeature.OAuth2_Implicit
                 ))
                 .excludeGlobalFeatures(
                         GlobalFeature.XMLStructureDefinitions,
@@ -252,10 +253,10 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         cliOptions.add(new CliOption(CodegenConstants.SOURCE_FOLDER, CodegenConstants.SOURCE_FOLDER_DESC).defaultValue(this.getSourceFolder()));
         cliOptions.add(CliOption.newBoolean(CodegenConstants.SERIALIZABLE_MODEL, CodegenConstants.SERIALIZABLE_MODEL_DESC, this.getSerializableModel()));
         cliOptions.add(CliOption.newBoolean(CodegenConstants.SERIALIZE_BIG_DECIMAL_AS_STRING, CodegenConstants.SERIALIZE_BIG_DECIMAL_AS_STRING_DESC, serializeBigDecimalAsString));
-        cliOptions.add(CliOption.newBoolean(FULL_JAVA_UTIL, "whether to use fully qualified name for classes under java.util. This option only works for Java API client", fullJavaUtil));
         cliOptions.add(CliOption.newBoolean(DISCRIMINATOR_CASE_SENSITIVE, "Whether the discriminator value lookup should be case-sensitive or not. This option only works for Java API client", discriminatorCaseSensitive));
         cliOptions.add(CliOption.newBoolean(CodegenConstants.HIDE_GENERATION_TIMESTAMP, CodegenConstants.HIDE_GENERATION_TIMESTAMP_DESC, this.isHideGenerationTimestamp()));
         cliOptions.add(CliOption.newBoolean(WITH_XML, "whether to include support for application/xml content type and include XML annotations in the model (works with libraries that provide support for JSON and XML)"));
+        cliOptions.add(CliOption.newBoolean(USE_ONE_OF_INTERFACES, "whether to use a java interface to describe a set of oneOf options, where each option is a class that implements the interface"));
 
         CliOption dateLibrary = new CliOption(DATE_LIBRARY, "Option. Date library to use").defaultValue(this.getDateLibrary());
         Map<String, String> dateOptions = new HashMap<>();
@@ -521,9 +522,6 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         // need to put back serializableModel (boolean) into additionalProperties as value in additionalProperties is string
         additionalProperties.put(CodegenConstants.SERIALIZABLE_MODEL, serializableModel);
 
-        if (additionalProperties.containsKey(FULL_JAVA_UTIL)) {
-            this.setFullJavaUtil(Boolean.parseBoolean(additionalProperties.get(FULL_JAVA_UTIL).toString()));
-        }
         if (additionalProperties.containsKey(DISCRIMINATOR_CASE_SENSITIVE)) {
             this.setDiscriminatorCaseSensitive(Boolean.parseBoolean(additionalProperties.get(DISCRIMINATOR_CASE_SENSITIVE).toString()));
         } else {
@@ -533,12 +531,6 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
             this.setDiscriminatorCaseSensitive(Boolean.TRUE);
         }
         additionalProperties.put(DISCRIMINATOR_CASE_SENSITIVE, this.discriminatorCaseSensitive);
-
-        if (fullJavaUtil) {
-            javaUtilPrefix = "java.util.";
-        }
-        additionalProperties.put(FULL_JAVA_UTIL, fullJavaUtil);
-        additionalProperties.put("javaUtilPrefix", javaUtilPrefix);
 
         if (additionalProperties.containsKey(WITH_XML)) {
             this.setWithXml(Boolean.parseBoolean(additionalProperties.get(WITH_XML).toString()));
@@ -574,6 +566,10 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
             this.setCamelCaseDollarSign(Boolean.parseBoolean(additionalProperties.get(CAMEL_CASE_DOLLAR_SIGN).toString()));
         }
 
+        if (additionalProperties.containsKey(USE_ONE_OF_INTERFACES)) {
+            this.setUseOneOfInterfaces(Boolean.parseBoolean(additionalProperties.get(USE_ONE_OF_INTERFACES).toString()));
+        }
+
         if (!StringUtils.isEmpty(parentGroupId) && !StringUtils.isEmpty(parentArtifactId) && !StringUtils.isEmpty(parentVersion)) {
             additionalProperties.put("parentOverridden", true);
         }
@@ -585,27 +581,6 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         importMapping.put("List", "java.util.List");
         importMapping.put("Set", "java.util.Set");
 
-        if (fullJavaUtil) {
-            typeMapping.put("array", "java.util.List");
-            typeMapping.put("set", "java.util.Set");
-            typeMapping.put("map", "java.util.Map");
-            typeMapping.put("DateTime", "java.util.Date");
-            typeMapping.put("UUID", "java.util.UUID");
-            typeMapping.remove("List");
-            importMapping.remove("Date");
-            importMapping.remove("Map");
-            importMapping.remove("HashMap");
-            importMapping.remove("Array");
-            importMapping.remove("ArrayList");
-            importMapping.remove("List");
-            importMapping.remove("Set");
-            importMapping.remove("DateTime");
-            importMapping.remove("UUID");
-            instantiationTypes.put("array", "java.util.ArrayList");
-            instantiationTypes.put("set", "java.util.LinkedHashSet");
-            instantiationTypes.put("map", "java.util.HashMap");
-        }
-
         this.sanitizeConfig();
 
         // optional jackson mappings for BigDecimal support
@@ -616,6 +591,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         // imports for pojos
         importMapping.put("ApiModelProperty", "io.swagger.annotations.ApiModelProperty");
         importMapping.put("ApiModel", "io.swagger.annotations.ApiModel");
+        importMapping.put("Schema", "io.swagger.v3.oas.annotations.media.Schema");
         importMapping.put("BigDecimal", "java.math.BigDecimal");
         importMapping.put("JsonProperty", "com.fasterxml.jackson.annotation.JsonProperty");
         importMapping.put("JsonSubTypes", "com.fasterxml.jackson.annotation.JsonSubTypes");
@@ -979,7 +955,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
      * Return null if there's no default value.
      * Any non-null value will cause {{#defaultValue} check to pass.
      *
-     * @param cp Codegen property
+     * @param cp     Codegen property
      * @param schema Property schema
      * @return string presentation of the default value of the property
      */
@@ -1004,7 +980,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
 
                 String defaultValue = "";
 
-                if (cp.items.isEnum) { // enum
+                if (cp.items.getIsEnumOrRef()) { // inline or ref enum
                     List<String> defaultValues = new ArrayList<>();
                     for (String _value : _values) {
                         defaultValues.add(cp.items.datatypeWithEnum + "." + toEnumVarName(_value, cp.items.dataType));
@@ -1013,6 +989,20 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
                 } else {
                     if (cp.items.isString) { // array item is string
                         defaultValue = String.format(Locale.ROOT, "\"%s\"", StringUtils.join(_values, "\", \""));
+                    } else if (cp.items.isNumeric) {
+                        defaultValue = _values.stream()
+                                .map(v -> {
+                                    if ("BigInteger".equals(cp.items.dataType)) {
+                                        return "new BigInteger(\"" + v + "\")";
+                                    } else if ("BigDecimal".equals(cp.items.dataType)) {
+                                        return "new BigDecimal(\"" + v + "\")";
+                                    } else if (cp.items.isFloat) {
+                                        return v + "f";
+                                    } else {
+                                        return v;
+                                    }
+                                })
+                                .collect(Collectors.joining(", "));
                     } else { // array item is non-string, e.g. integer
                         defaultValue = StringUtils.join(_values, ", ");
                     }
@@ -1037,8 +1027,9 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         schema = ModelUtils.getReferencedSchema(this.openAPI, schema);
         if (ModelUtils.isArraySchema(schema)) {
             if (schema.getDefault() == null) {
-                if (cp.isNullable || containerDefaultToNull) { // nullable or containerDefaultToNull set to true
-                    return "null";
+                // nullable, optional or containerDefaultToNull set to true
+                if (cp.isNullable || !cp.required || containerDefaultToNull) {
+                    return null;
                 } else {
                     if (ModelUtils.isSet(schema)) {
                         return String.format(Locale.ROOT, "new %s<>()",
@@ -1061,7 +1052,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
             }
 
             if (cp.isNullable || containerDefaultToNull) { // nullable or containerDefaultToNull set to true
-                return "null";
+                return null;
             }
 
             if (getAdditionalProperties(schema) == null) {
@@ -1163,11 +1154,11 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
             if (defaultValue instanceof ArrayNode) {
                 ArrayNode array = (ArrayNode) defaultValue;
                 return StreamSupport.stream(array.spliterator(), false)
-                    .map(JsonNode::toString)
-                    // remove wrapper quotes
-                    .map(item -> StringUtils.removeStart(item, "\""))
-                    .map(item -> StringUtils.removeEnd(item, "\""))
-                    .collect(Collectors.joining(","));
+                        .map(JsonNode::toString)
+                        // remove wrapper quotes
+                        .map(item -> StringUtils.removeStart(item, "\""))
+                        .map(item -> StringUtils.removeEnd(item, "\""))
+                        .collect(Collectors.joining(","));
             }
         }
         // escape quotes
@@ -1411,7 +1402,10 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         Map<String, Schema> allDefinitions = ModelUtils.getSchemas(this.openAPI);
         CodegenModel codegenModel = super.fromModel(name, model);
         if (codegenModel.description != null) {
-            codegenModel.imports.add("ApiModel");
+            if (!AnnotationLibrary.SWAGGER2.equals(getAnnotationLibrary())) {
+                // TODO: should only be for SWAGGER1, but some NONE/MICROPROFILE templates still use it
+                codegenModel.imports.add("ApiModel");
+            }
         }
         if (codegenModel.discriminator != null && additionalProperties.containsKey(JACKSON)) {
             codegenModel.imports.add("JsonSubTypes");
@@ -1457,25 +1451,26 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
             }
         }
 
-        if (!fullJavaUtil) {
-            if ("array".equals(property.containerType)) {
-                model.imports.add("ArrayList");
-            } else if ("set".equals(property.containerType)) {
-                model.imports.add("LinkedHashSet");
-                boolean canNotBeWrappedToNullable = !openApiNullable || !property.isNullable;
-                if (canNotBeWrappedToNullable) {
-                    model.imports.add("JsonDeserialize");
-                    property.vendorExtensions.put("x-setter-extra-annotation", "@JsonDeserialize(as = LinkedHashSet.class)");
-                }
-            } else if ("map".equals(property.containerType)) {
-                model.imports.add("HashMap");
+        if ("array".equals(property.containerType)) {
+            model.imports.add("ArrayList");
+        } else if ("set".equals(property.containerType)) {
+            model.imports.add("LinkedHashSet");
+            boolean canNotBeWrappedToNullable = !openApiNullable || !property.isNullable;
+            if (canNotBeWrappedToNullable) {
+                model.imports.add("JsonDeserialize");
+                property.vendorExtensions.put("x-setter-extra-annotation", "@JsonDeserialize(as = LinkedHashSet.class)");
             }
+        } else if ("map".equals(property.containerType)) {
+            model.imports.add("HashMap");
         }
 
         if (!BooleanUtils.toBoolean(model.isEnum)) {
             // needed by all pojos, but not enums
-            model.imports.add("ApiModelProperty");
-            model.imports.add("ApiModel");
+            if (!AnnotationLibrary.SWAGGER2.equals(getAnnotationLibrary())) {
+                // TODO: should only be for SWAGGER1, but some NONE/MICROPROFILE templates still use it
+                model.imports.add("ApiModelProperty");
+                model.imports.add("ApiModel");
+            }
         }
 
         if (openApiNullable) {
@@ -1542,6 +1537,10 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         OperationMap operations = objs.getOperations();
         List<CodegenOperation> operationList = operations.getOperation();
         for (CodegenOperation op : operationList) {
+            // check if the operation has form parameters
+            if (op.getHasFormParams()) {
+                additionalProperties.put("hasFormParamsInSpec", true);
+            }
             Collection<String> operationImports = new ConcurrentSkipListSet<>();
             for (CodegenParameter p : op.allParams) {
                 if (importMapping.containsKey(p.dataType)) {
@@ -1552,6 +1551,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
 
             handleImplicitHeaders(op);
         }
+
         return objs;
     }
 
@@ -1928,10 +1928,6 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         return p.replaceAll("\"", "%22");
     }
 
-    public void setFullJavaUtil(boolean fullJavaUtil) {
-        this.fullJavaUtil = fullJavaUtil;
-    }
-
     /**
      * Set whether discriminator value lookup is case-sensitive or not.
      *
@@ -2231,8 +2227,9 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
 
     /**
      * Search for property by {@link CodegenProperty#name}
-     * @param name - name to search for
-     * @param properties - list of properties
+     *
+     * @param name       name to search for
+     * @param properties list of properties
      * @return either found property or {@link Optional#empty()} if nothing has been found
      */
     protected Optional<CodegenProperty> findByName(String name, List<CodegenProperty> properties) {
@@ -2241,8 +2238,8 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         }
 
         return properties.stream()
-            .filter(p -> p.name.equals(name))
-            .findFirst();
+                .filter(p -> p.name.equals(name))
+                .findFirst();
     }
 
     /**
@@ -2266,6 +2263,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
                 operation.allParams.add(p);
             }
         }
+        operation.hasParams = !operation.allParams.isEmpty();
     }
 
     private boolean shouldBeImplicitHeader(CodegenParameter parameter) {
@@ -2284,6 +2282,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
             }
         }
     }
+
     @Override
     public List<VendorExtension> getSupportedVendorExtensions() {
         List<VendorExtension> extensions = super.getSupportedVendorExtensions();
@@ -2309,6 +2308,7 @@ public abstract class AbstractJavaCodegen extends DefaultCodegen implements Code
         }
         return addImports;
     }
+
     public static void addImports(List<Map<String, String>> imports, CodegenModel cm, Map<String, String> imports2Classnames) {
         for (Map.Entry<String, String> entry : imports2Classnames.entrySet()) {
             cm.imports.add(entry.getKey());

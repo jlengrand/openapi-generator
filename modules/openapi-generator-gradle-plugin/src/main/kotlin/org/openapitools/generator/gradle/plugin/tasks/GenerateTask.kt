@@ -39,6 +39,7 @@ import org.openapitools.codegen.CodegenConstants
 import org.openapitools.codegen.DefaultGenerator
 import org.openapitools.codegen.config.CodegenConfigurator
 import org.openapitools.codegen.config.GlobalSettings
+import org.openapitools.codegen.config.MergedSpecBuilder
 
 /**
  * A task which generates the desired code.
@@ -95,6 +96,21 @@ open class GenerateTask : DefaultTask() {
     @get:InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     val inputSpec = project.objects.property<String>()
+
+    /**
+     * Local root folder with spec files
+     */
+    @Optional
+    @get:InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    val inputSpecRootDirectory = project.objects.property<String>();
+
+    /**
+     * Name of the file that will contain all merged specs
+     */
+    @Input
+    @Optional
+    val mergedFileName = project.objects.property<String>();
 
     /**
      * The remote Open API 2.0/3.x specification URL location.
@@ -505,6 +521,13 @@ open class GenerateTask : DefaultTask() {
     @Input
     val cleanupOutput = project.objects.property<Boolean>()
 
+    /**
+     * Defines whether the generator should run in dry-run mode.
+     */
+    @Optional
+    @Input
+    val dryRun = project.objects.property<Boolean>()
+
     private fun <T : Any?> Property<T>.ifNotEmpty(block: Property<T>.(T) -> Unit) {
         if (isPresent) {
             val item: T? = get()
@@ -527,6 +550,11 @@ open class GenerateTask : DefaultTask() {
     @Suppress("unused")
     @TaskAction
     fun doWork() {
+        inputSpecRootDirectory.ifNotEmpty { inputSpecRootDirectoryValue -> {
+            inputSpec.set(MergedSpecBuilder(inputSpecRootDirectoryValue, mergedFileName.get()).buildMergedSpec())
+            logger.info("Merge input spec would be used - {}", inputSpec.get())
+        }}
+
         cleanupOutput.ifNotEmpty { cleanup ->
             if (cleanup) {
                 project.delete(outputDir)
@@ -801,6 +829,11 @@ open class GenerateTask : DefaultTask() {
                 }
             }
 
+            var dryRunSetting = false
+            dryRun.ifNotEmpty { setting ->
+                dryRunSetting = setting
+            }
+
             val clientOptInput = configurator.toClientOptInput()
             val codegenConfig = clientOptInput.config
 
@@ -817,7 +850,7 @@ open class GenerateTask : DefaultTask() {
                 val out = services.get(StyledTextOutputFactory::class.java).create("openapi")
                 out.withStyle(StyledTextOutput.Style.Success)
 
-                DefaultGenerator().opts(clientOptInput).generate()
+                DefaultGenerator(dryRunSetting).opts(clientOptInput).generate()
 
                 out.println("Successfully generated code to ${outputDir.get()}")
             } catch (e: RuntimeException) {

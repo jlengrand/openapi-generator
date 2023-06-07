@@ -69,8 +69,18 @@ public class BigCatDto extends CatDto {
     }
   }
 
-  @JsonProperty("kind")
   private KindEnum kind;
+
+  public BigCatDto() {
+    super();
+  }
+
+  /**
+   * Constructor with only required parameters
+   */
+  public BigCatDto(String className) {
+    super(className);
+  }
 
   public BigCatDto kind(KindEnum kind) {
     this.kind = kind;
@@ -83,6 +93,7 @@ public class BigCatDto extends CatDto {
   */
   
   @ApiModelProperty(value = "")
+  @JsonProperty("kind")
   public KindEnum getKind() {
     return kind;
   }
