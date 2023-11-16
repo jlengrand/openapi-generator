@@ -55,6 +55,8 @@ public interface CodegenConfig {
 
     Map<String, Object> vendorExtensions();
 
+    Map<String, String> templateOutputDirs();
+
     String testPackage();
 
     String apiPackage();
@@ -145,7 +147,15 @@ public interface CodegenConfig {
 
     Map<String, String> inlineSchemaNameMapping();
 
-    Map<String, String> inlineSchemaNameDefault();
+    Map<String, String> inlineSchemaOption();
+
+    Map<String, String> nameMapping();
+
+    Map<String, String> parameterNameMapping();
+
+    Map<String, String> modelNameMapping();
+
+    Map<String, String> enumNameMapping();
 
     Map<String, String> openapiNormalizer();
 
@@ -213,7 +223,11 @@ public interface CodegenConfig {
 
     String modelFilename(String templateName, String modelName);
 
+    String modelFilename(String templateName, String modelName, String outputDir);
+
     String apiFilename(String templateName, String tag);
+
+    String apiFilename(String templateName, String tag, String outputDir);
 
     String apiTestFilename(String templateName, String tag);
 

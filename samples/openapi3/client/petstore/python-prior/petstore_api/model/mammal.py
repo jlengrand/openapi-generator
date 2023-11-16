@@ -106,9 +106,9 @@ class Mammal(ModelComposed):
     def discriminator():
         lazy_import()
         val = {
-            'Pig': Pig,
             'whale': Whale,
             'zebra': Zebra,
+            'Pig': Pig,
         }
         if not val:
             return None

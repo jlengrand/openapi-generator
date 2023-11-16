@@ -19,7 +19,7 @@ import org.openapitools.client.Pair;
 
 import org.openapitools.client.model.DataQuery;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import org.openapitools.client.model.Pet;
 import org.openapitools.client.model.StringEnumRef;
 import org.openapitools.client.model.TestQueryStyleDeepObjectExplodeTrueObjectAllOfQueryObjectParameter;
@@ -96,24 +96,26 @@ public class QueryApi {
   /**
    * Test query parameter(s)
    * Test query parameter(s)
+   * @param enumNonrefStringQuery  (optional)
    * @param enumRefStringQuery  (optional)
    * @return String
    * @throws ApiException if fails to make API call
    */
-  public String testEnumRefString(StringEnumRef enumRefStringQuery) throws ApiException {
-    ApiResponse<String> localVarResponse = testEnumRefStringWithHttpInfo(enumRefStringQuery);
+  public String testEnumRefString(String enumNonrefStringQuery, StringEnumRef enumRefStringQuery) throws ApiException {
+    ApiResponse<String> localVarResponse = testEnumRefStringWithHttpInfo(enumNonrefStringQuery, enumRefStringQuery);
     return localVarResponse.getData();
   }
 
   /**
    * Test query parameter(s)
    * Test query parameter(s)
+   * @param enumNonrefStringQuery  (optional)
    * @param enumRefStringQuery  (optional)
    * @return ApiResponse&lt;String&gt;
    * @throws ApiException if fails to make API call
    */
-  public ApiResponse<String> testEnumRefStringWithHttpInfo(StringEnumRef enumRefStringQuery) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testEnumRefStringRequestBuilder(enumRefStringQuery);
+  public ApiResponse<String> testEnumRefStringWithHttpInfo(String enumNonrefStringQuery, StringEnumRef enumRefStringQuery) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testEnumRefStringRequestBuilder(enumNonrefStringQuery, enumRefStringQuery);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -127,7 +129,7 @@ public class QueryApi {
         }
         // for plain text response
         if (localVarResponse.headers().map().containsKey("Content-Type") &&
-                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0))) {
+                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0).split(";")[0].trim())) {
           java.util.Scanner s = new java.util.Scanner(localVarResponse.body()).useDelimiter("\\A");
           String responseBodyText = s.hasNext() ? s.next() : "";
           return new ApiResponse<String>(
@@ -149,7 +151,7 @@ public class QueryApi {
     }
   }
 
-  private HttpRequest.Builder testEnumRefStringRequestBuilder(StringEnumRef enumRefStringQuery) throws ApiException {
+  private HttpRequest.Builder testEnumRefStringRequestBuilder(String enumNonrefStringQuery, StringEnumRef enumRefStringQuery) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -158,6 +160,8 @@ public class QueryApi {
     List<Pair> localVarQueryParams = new ArrayList<>();
     StringJoiner localVarQueryStringJoiner = new StringJoiner("&");
     String localVarQueryParameterBaseName;
+    localVarQueryParameterBaseName = "enum_nonref_string_query";
+    localVarQueryParams.addAll(ApiClient.parameterToPairs("enum_nonref_string_query", enumNonrefStringQuery));
     localVarQueryParameterBaseName = "enum_ref_string_query";
     localVarQueryParams.addAll(ApiClient.parameterToPairs("enum_ref_string_query", enumRefStringQuery));
 
@@ -192,7 +196,7 @@ public class QueryApi {
    * @return String
    * @throws ApiException if fails to make API call
    */
-  public String testQueryDatetimeDateString(OffsetDateTime datetimeQuery, LocalDate dateQuery, String stringQuery) throws ApiException {
+  public String testQueryDatetimeDateString(Instant datetimeQuery, LocalDate dateQuery, String stringQuery) throws ApiException {
     ApiResponse<String> localVarResponse = testQueryDatetimeDateStringWithHttpInfo(datetimeQuery, dateQuery, stringQuery);
     return localVarResponse.getData();
   }
@@ -206,7 +210,7 @@ public class QueryApi {
    * @return ApiResponse&lt;String&gt;
    * @throws ApiException if fails to make API call
    */
-  public ApiResponse<String> testQueryDatetimeDateStringWithHttpInfo(OffsetDateTime datetimeQuery, LocalDate dateQuery, String stringQuery) throws ApiException {
+  public ApiResponse<String> testQueryDatetimeDateStringWithHttpInfo(Instant datetimeQuery, LocalDate dateQuery, String stringQuery) throws ApiException {
     HttpRequest.Builder localVarRequestBuilder = testQueryDatetimeDateStringRequestBuilder(datetimeQuery, dateQuery, stringQuery);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
@@ -221,7 +225,7 @@ public class QueryApi {
         }
         // for plain text response
         if (localVarResponse.headers().map().containsKey("Content-Type") &&
-                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0))) {
+                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0).split(";")[0].trim())) {
           java.util.Scanner s = new java.util.Scanner(localVarResponse.body()).useDelimiter("\\A");
           String responseBodyText = s.hasNext() ? s.next() : "";
           return new ApiResponse<String>(
@@ -243,7 +247,7 @@ public class QueryApi {
     }
   }
 
-  private HttpRequest.Builder testQueryDatetimeDateStringRequestBuilder(OffsetDateTime datetimeQuery, LocalDate dateQuery, String stringQuery) throws ApiException {
+  private HttpRequest.Builder testQueryDatetimeDateStringRequestBuilder(Instant datetimeQuery, LocalDate dateQuery, String stringQuery) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -319,7 +323,7 @@ public class QueryApi {
         }
         // for plain text response
         if (localVarResponse.headers().map().containsKey("Content-Type") &&
-                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0))) {
+                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0).split(";")[0].trim())) {
           java.util.Scanner s = new java.util.Scanner(localVarResponse.body()).useDelimiter("\\A");
           String responseBodyText = s.hasNext() ? s.next() : "";
           return new ApiResponse<String>(
@@ -413,7 +417,7 @@ public class QueryApi {
         }
         // for plain text response
         if (localVarResponse.headers().map().containsKey("Content-Type") &&
-                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0))) {
+                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0).split(";")[0].trim())) {
           java.util.Scanner s = new java.util.Scanner(localVarResponse.body()).useDelimiter("\\A");
           String responseBodyText = s.hasNext() ? s.next() : "";
           return new ApiResponse<String>(
@@ -505,7 +509,7 @@ public class QueryApi {
         }
         // for plain text response
         if (localVarResponse.headers().map().containsKey("Content-Type") &&
-                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0))) {
+                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0).split(";")[0].trim())) {
           java.util.Scanner s = new java.util.Scanner(localVarResponse.body()).useDelimiter("\\A");
           String responseBodyText = s.hasNext() ? s.next() : "";
           return new ApiResponse<String>(
@@ -597,7 +601,7 @@ public class QueryApi {
         }
         // for plain text response
         if (localVarResponse.headers().map().containsKey("Content-Type") &&
-                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0))) {
+                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0).split(";")[0].trim())) {
           java.util.Scanner s = new java.util.Scanner(localVarResponse.body()).useDelimiter("\\A");
           String responseBodyText = s.hasNext() ? s.next() : "";
           return new ApiResponse<String>(
@@ -687,7 +691,7 @@ public class QueryApi {
         }
         // for plain text response
         if (localVarResponse.headers().map().containsKey("Content-Type") &&
-                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0))) {
+                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0).split(";")[0].trim())) {
           java.util.Scanner s = new java.util.Scanner(localVarResponse.body()).useDelimiter("\\A");
           String responseBodyText = s.hasNext() ? s.next() : "";
           return new ApiResponse<String>(
@@ -782,7 +786,7 @@ public class QueryApi {
         }
         // for plain text response
         if (localVarResponse.headers().map().containsKey("Content-Type") &&
-                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0))) {
+                "text/plain".equalsIgnoreCase(localVarResponse.headers().map().get("Content-Type").get(0).split(";")[0].trim())) {
           java.util.Scanner s = new java.util.Scanner(localVarResponse.body()).useDelimiter("\\A");
           String responseBodyText = s.hasNext() ? s.next() : "";
           return new ApiResponse<String>(

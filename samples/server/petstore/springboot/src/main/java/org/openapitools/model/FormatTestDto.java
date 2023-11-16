@@ -60,11 +60,6 @@ public class FormatTestDto {
 
   private BigDecimal bigDecimal;
 
-  /**
-   * Default constructor
-   * @deprecated Use {@link FormatTestDto#FormatTestDto(BigDecimal, byte[], LocalDate, String)}
-   */
-  @Deprecated
   public FormatTestDto() {
     super();
   }
@@ -415,7 +410,7 @@ public class FormatTestDto {
     sb.append("    date: ").append(toIndentedString(date)).append("\n");
     sb.append("    dateTime: ").append(toIndentedString(dateTime)).append("\n");
     sb.append("    uuid: ").append(toIndentedString(uuid)).append("\n");
-    sb.append("    password: ").append(toIndentedString(password)).append("\n");
+    sb.append("    password: ").append("*").append("\n");
     sb.append("    bigDecimal: ").append(toIndentedString(bigDecimal)).append("\n");
     sb.append("}");
     return sb.toString();

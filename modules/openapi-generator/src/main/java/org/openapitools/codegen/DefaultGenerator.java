@@ -36,12 +36,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.api.TemplateDefinition;
 import org.openapitools.codegen.api.TemplatePathLocator;
 import org.openapitools.codegen.api.TemplateProcessor;
+import org.openapitools.codegen.config.GeneratorSettings;
 import org.openapitools.codegen.config.GlobalSettings;
 import org.openapitools.codegen.api.TemplatingEngineAdapter;
 import org.openapitools.codegen.api.TemplateFileType;
 import org.openapitools.codegen.ignore.CodegenIgnoreProcessor;
-import org.openapitools.codegen.languages.PythonPriorClientCodegen;
-import org.openapitools.codegen.languages.PythonClientCodegen;
+import org.openapitools.codegen.languages.CSharpClientCodegen;
 import org.openapitools.codegen.meta.GeneratorMetadata;
 import org.openapitools.codegen.meta.Stability;
 import org.openapitools.codegen.model.ApiInfoMap;
@@ -58,6 +58,7 @@ import org.openapitools.codegen.utils.ImplementationVersion;
 import org.openapitools.codegen.utils.ModelUtils;
 import org.openapitools.codegen.utils.ProcessUtils;
 import org.openapitools.codegen.utils.URLPathUtils;
+import org.openapitools.codegen.utils.SemVer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,6 +99,8 @@ public class DefaultGenerator implements Generator {
     protected TemplateProcessor templateProcessor = null;
 
     private List<TemplateDefinition> userDefinedTemplates = new ArrayList<>();
+    private String generatorCheck = "spring";
+    private String templateCheck = "apiController.mustache";
 
 
     public DefaultGenerator() {
@@ -254,18 +257,32 @@ public class DefaultGenerator implements Generator {
         }
 
         config.processOpts();
+        if (opts != null && opts.getGeneratorSettings() != null) {
+            config.typeMapping().putAll(opts.getGeneratorSettings().getTypeMappings());
+            config.importMapping().putAll(opts.getGeneratorSettings().getImportMappings());
+        }
 
         // normalize the spec
-        if (config.getUseOpenAPINormalizer()) {
-            OpenAPINormalizer openapiNormalizer = new OpenAPINormalizer(openAPI, config.openapiNormalizer());
-            openapiNormalizer.normalize();
+        try {
+            if (config.getUseOpenAPINormalizer()) {
+                SemVer version = new SemVer(openAPI.getOpenapi());
+                if (version.atLeast("3.1.0")) {
+                    config.openapiNormalizer().put("NORMALIZE_31SPEC", "true");
+                }
+                OpenAPINormalizer openapiNormalizer = new OpenAPINormalizer(openAPI, config.openapiNormalizer());
+                openapiNormalizer.normalize();
+            }
+        } catch (Exception e) {
+            LOGGER.error("An exception occurred in OpenAPI Normalizer. Please report the issue via https://github.com/openapitools/openapi-generator/issues/new/: ");
+            e.printStackTrace();
         }
 
         // resolve inline models
         if (config.getUseInlineModelResolver()) {
             InlineModelResolver inlineModelResolver = new InlineModelResolver();
             inlineModelResolver.setInlineSchemaNameMapping(config.inlineSchemaNameMapping());
-            inlineModelResolver.setInlineSchemaNameDefaults(config.inlineSchemaNameDefault());
+            inlineModelResolver.setInlineSchemaOptions(config.inlineSchemaOption());
+
             inlineModelResolver.flatten(openAPI);
         }
 
@@ -404,8 +421,15 @@ public class DefaultGenerator implements Generator {
 
     private void generateModel(List<File> files, Map<String, Object> models, String modelName) throws IOException {
         for (String templateName : config.modelTemplateFiles().keySet()) {
-            String filename = config.modelFilename(templateName, modelName);
-            File written = processTemplateToFile(models, templateName, filename, generateModels, CodegenConstants.MODELS);
+            File written;
+            if (config.templateOutputDirs().containsKey(templateName)) {
+                String outputDir = config.getOutputDir() + File.separator + config.templateOutputDirs().get(templateName);
+                String filename = config.modelFilename(templateName, modelName, outputDir);
+                written = processTemplateToFile(models, templateName, filename, generateModels, CodegenConstants.MODELS, outputDir);
+            } else {
+                String filename = config.modelFilename(templateName, modelName);
+                written = processTemplateToFile(models, templateName, filename, generateModels, CodegenConstants.MODELS);
+            }
             if (written != null) {
                 files.add(written);
                 if (config.isEnablePostProcessFile() && !dryRun) {
@@ -464,7 +488,7 @@ public class DefaultGenerator implements Generator {
                         // HACK: Because this returns early, could lead to some invalid model reporting.
                         String filename = config.modelFilename(templateName, name);
                         Path path = java.nio.file.Paths.get(filename);
-                        this.templateProcessor.skip(path,"Skipped prior to model processing due to schema mapping." );
+                        this.templateProcessor.skip(path, "Skipped prior to model processing due to schema mapping.");
                     }
                     continue;
                 }
@@ -483,7 +507,7 @@ public class DefaultGenerator implements Generator {
 
                 Schema schema = schemas.get(name);
 
-                if (ModelUtils.isFreeFormObject(this.openAPI, schema)) { // check to see if it's a free-form object
+                if (ModelUtils.isFreeFormObject(schema)) { // check to see if it's a free-form object
                     // there are 3 free form use cases
                     // 1. free form with no validation that is not allOf included in any composed schemas
                     // 2. free form with validation
@@ -547,9 +571,8 @@ public class DefaultGenerator implements Generator {
                     ModelMap modelTemplate = modelList.get(0);
                     if (modelTemplate != null && modelTemplate.getModel() != null) {
                         CodegenModel m = modelTemplate.getModel();
-                        if (m.isAlias && !((config instanceof PythonPriorClientCodegen) || (config instanceof PythonClientCodegen))) {
+                        if (m.isAlias) {
                             // alias to number, string, enum, etc, which should not be generated as model
-                            // for PythonClientCodegen, all aliases are generated as models
                             continue;  // Don't create user-defined classes for aliases
                         }
                     }
@@ -585,7 +608,7 @@ public class DefaultGenerator implements Generator {
         }
         Map<String, List<CodegenOperation>> paths = processPaths(this.openAPI.getPaths());
         Set<String> apisToGenerate = null;
-        String apiNames = GlobalSettings.getProperty("apis");
+        String apiNames = GlobalSettings.getProperty(CodegenConstants.APIS);
         if (apiNames != null && !apiNames.isEmpty()) {
             apisToGenerate = new HashSet<>(Arrays.asList(apiNames.split(",")));
         }
@@ -673,8 +696,24 @@ public class DefaultGenerator implements Generator {
                 addAuthenticationSwitches(operation);
 
                 for (String templateName : config.apiTemplateFiles().keySet()) {
-                    String filename = config.apiFilename(templateName, tag);
-                    File written = processTemplateToFile(operation, templateName, filename, generateApis, CodegenConstants.APIS);
+                    File written = null;
+                    if (config.templateOutputDirs().containsKey(templateName)) {
+                        String outputDir = config.getOutputDir() + File.separator + config.templateOutputDirs().get(templateName);
+                        String filename = config.apiFilename(templateName, tag, outputDir);
+                        // do not overwrite apiController file for spring server
+                        if (apiFilePreCheck(filename, generatorCheck, templateName, templateCheck)){
+                            written = processTemplateToFile(operation, templateName, filename, generateApis, CodegenConstants.APIS, outputDir);
+                        } else {
+                            LOGGER.info("Implementation file {} is not overwritten",filename);
+                        }
+                    } else {
+                        String filename = config.apiFilename(templateName, tag);
+                        if(apiFilePreCheck(filename, generatorCheck, templateName, templateCheck)){
+                            written = processTemplateToFile(operation, templateName, filename, generateApis, CodegenConstants.APIS);
+                        } else {
+                            LOGGER.info("Implementation file {} is not overwritten",filename);
+                        }
+                    }
                     if (written != null) {
                         files.add(written);
                         if (config.isEnablePostProcessFile() && !dryRun) {
@@ -722,6 +761,12 @@ public class DefaultGenerator implements Generator {
             Json.prettyPrint(allOperations);
         }
 
+    }
+
+    // checking if apiController file is already existed for spring generator
+    private boolean apiFilePreCheck(String filename, String generator, String templateName, String apiControllerTemplate){
+        File apiFile = new File(filename);
+        return !(apiFile.exists() && config.getName().equals(generator) && templateName.equals(apiControllerTemplate));
     }
 
     private void generateSupportingFiles(List<File> files, Map<String, Object> bundle) {
@@ -881,6 +926,10 @@ public class DefaultGenerator implements Generator {
             if (ProcessUtils.hasOAuthMethods(authMethods)) {
                 bundle.put("hasOAuthMethods", true);
                 bundle.put("oauthMethods", ProcessUtils.getOAuthMethods(authMethods));
+            }
+            if (ProcessUtils.hasOpenIdConnectMethods(authMethods)) {
+                bundle.put("hasOpenIdConnectMethods", true);
+                bundle.put("openIdConnectMethods", ProcessUtils.getOpenIdConnectMethods(authMethods));
             }
             if (ProcessUtils.hasHttpBearerMethods(authMethods)) {
                 bundle.put("hasHttpBearerMethods", true);
@@ -1043,7 +1092,10 @@ public class DefaultGenerator implements Generator {
                         } else {
                             templateExt = StringUtils.prependIfMissing(templateExt, ".");
                         }
-
+                        String templateOutputFolder = userDefinedTemplate.getFolder();
+                        if (!templateOutputFolder.isEmpty()) {
+                            config.templateOutputDirs().put(templateFile, templateOutputFolder);
+                        }
                         switch (userDefinedTemplate.getTemplateType()) {
                             case API:
                                 config.apiTemplateFiles().put(templateFile, templateExt);
@@ -1296,7 +1348,7 @@ public class DefaultGenerator implements Generator {
      */
     private Set<Map<String, String>> toImportsObjects(Map<String, String> mappedImports) {
         Set<Map<String, String>> result = new TreeSet<>(
-            Comparator.comparing(o -> o.get("classname"))
+                Comparator.comparing(o -> o.get("classname"))
         );
 
         mappedImports.forEach((key, value) -> {
@@ -1316,8 +1368,10 @@ public class DefaultGenerator implements Generator {
         for (Map.Entry<String, Schema> definitionsEntry : definitions.entrySet()) {
             String key = definitionsEntry.getKey();
             Schema schema = definitionsEntry.getValue();
-            if (schema == null)
-                throw new RuntimeException("schema cannot be null in processModels");
+            if (schema == null) {
+                LOGGER.warn("Schema {} cannot be null in processModels", key);
+                continue;
+            }
             CodegenModel cm = config.fromModel(key, schema);
             ModelMap mo = new ModelMap();
             mo.setModel(cm);
@@ -1409,6 +1463,32 @@ public class DefaultGenerator implements Generator {
                         }
 
                         authMethods.put(key, oauthUpdatedScheme);
+                    } else if (securityScheme.getType().equals(SecurityScheme.Type.OPENIDCONNECT)) {
+                        // Security scheme only allows to add scope in Flows, so randomly using authorization code flow
+                        OAuthFlows openIdConnectUpdatedFlows = new OAuthFlows();
+                        OAuthFlow flow = new OAuthFlow();
+                        Scopes flowScopes = new Scopes();
+                        securities.stream()
+                                .map(secReq -> secReq.get(key))
+                                .filter(Objects::nonNull)
+                                .flatMap(List::stream)
+                                .forEach(value -> flowScopes.put(value, value));
+                        flow.scopes(flowScopes);
+                        openIdConnectUpdatedFlows.authorizationCode(flow);
+
+                        SecurityScheme openIdConnectUpdatedScheme = new SecurityScheme()
+                                .type(securityScheme.getType())
+                                .description(securityScheme.getDescription())
+                                .name(securityScheme.getName())
+                                .$ref(securityScheme.get$ref())
+                                .in(securityScheme.getIn())
+                                .scheme(securityScheme.getScheme())
+                                .bearerFormat(securityScheme.getBearerFormat())
+                                .openIdConnectUrl(securityScheme.getOpenIdConnectUrl())
+                                .extensions(securityScheme.getExtensions())
+                                .flows(openIdConnectUpdatedFlows);
+
+                        authMethods.put(key, openIdConnectUpdatedScheme);
                     } else {
                         authMethods.put(key, securityScheme);
                     }

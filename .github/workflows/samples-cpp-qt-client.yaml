@@ -28,8 +28,8 @@ jobs:
             tools: 'tools_openssl_x64'
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: jurplel/install-qt-action@v3
+      - uses: actions/checkout@v4
+      - uses: jurplel/install-qt-action@v4
         with:
           version: ${{ matrix.qt-version }}
           tools: ${{ matrix.tools }}

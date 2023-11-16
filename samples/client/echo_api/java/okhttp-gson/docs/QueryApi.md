@@ -14,9 +14,9 @@ All URIs are relative to *http://localhost:3000*
 | [**testQueryStyleFormExplodeTrueObjectAllOf**](QueryApi.md#testQueryStyleFormExplodeTrueObjectAllOf) | **GET** /query/style_form/explode_true/object/allOf | Test query parameter(s) |
 
 
-<a name="testEnumRefString"></a>
+<a id="testEnumRefString"></a>
 # **testEnumRefString**
-> String testEnumRefString(enumRefStringQuery)
+> String testEnumRefString(enumNonrefStringQuery, enumRefStringQuery)
 
 Test query parameter(s)
 
@@ -37,9 +37,10 @@ public class Example {
     defaultClient.setBasePath("http://localhost:3000");
 
     QueryApi apiInstance = new QueryApi(defaultClient);
+    String enumNonrefStringQuery = "success"; // String | 
     StringEnumRef enumRefStringQuery = StringEnumRef.fromValue("success"); // StringEnumRef | 
     try {
-      String result = apiInstance.testEnumRefString(enumRefStringQuery);
+      String result = apiInstance.testEnumRefString(enumNonrefStringQuery, enumRefStringQuery);
       System.out.println(result);
     } catch (ApiException e) {
       System.err.println("Exception when calling QueryApi#testEnumRefString");
@@ -56,6 +57,7 @@ public class Example {
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
+| **enumNonrefStringQuery** | **String**|  | [optional] [enum: success, failure, unclassified] |
 | **enumRefStringQuery** | [**StringEnumRef**](.md)|  | [optional] [enum: success, failure, unclassified] |
 
 ### Return type
@@ -76,7 +78,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Successful operation |  -  |
 
-<a name="testQueryDatetimeDateString"></a>
+<a id="testQueryDatetimeDateString"></a>
 # **testQueryDatetimeDateString**
 > String testQueryDatetimeDateString(datetimeQuery, dateQuery, stringQuery)
 
@@ -142,7 +144,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Successful operation |  -  |
 
-<a name="testQueryIntegerBooleanString"></a>
+<a id="testQueryIntegerBooleanString"></a>
 # **testQueryIntegerBooleanString**
 > String testQueryIntegerBooleanString(integerQuery, booleanQuery, stringQuery)
 
@@ -208,7 +210,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Successful operation |  -  |
 
-<a name="testQueryStyleDeepObjectExplodeTrueObject"></a>
+<a id="testQueryStyleDeepObjectExplodeTrueObject"></a>
 # **testQueryStyleDeepObjectExplodeTrueObject**
 > String testQueryStyleDeepObjectExplodeTrueObject(queryObject)
 
@@ -231,7 +233,7 @@ public class Example {
     defaultClient.setBasePath("http://localhost:3000");
 
     QueryApi apiInstance = new QueryApi(defaultClient);
-    Pet queryObject = new HashMap(); // Pet | 
+    Pet queryObject = new Pet(); // Pet | 
     try {
       String result = apiInstance.testQueryStyleDeepObjectExplodeTrueObject(queryObject);
       System.out.println(result);
@@ -270,7 +272,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Successful operation |  -  |
 
-<a name="testQueryStyleDeepObjectExplodeTrueObjectAllOf"></a>
+<a id="testQueryStyleDeepObjectExplodeTrueObjectAllOf"></a>
 # **testQueryStyleDeepObjectExplodeTrueObjectAllOf**
 > String testQueryStyleDeepObjectExplodeTrueObjectAllOf(queryObject)
 
@@ -332,7 +334,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Successful operation |  -  |
 
-<a name="testQueryStyleFormExplodeTrueArrayString"></a>
+<a id="testQueryStyleFormExplodeTrueArrayString"></a>
 # **testQueryStyleFormExplodeTrueArrayString**
 > String testQueryStyleFormExplodeTrueArrayString(queryObject)
 
@@ -355,7 +357,7 @@ public class Example {
     defaultClient.setBasePath("http://localhost:3000");
 
     QueryApi apiInstance = new QueryApi(defaultClient);
-    TestQueryStyleFormExplodeTrueArrayStringQueryObjectParameter queryObject = new HashMap(); // TestQueryStyleFormExplodeTrueArrayStringQueryObjectParameter | 
+    TestQueryStyleFormExplodeTrueArrayStringQueryObjectParameter queryObject = new TestQueryStyleFormExplodeTrueArrayStringQueryObjectParameter(); // TestQueryStyleFormExplodeTrueArrayStringQueryObjectParameter | 
     try {
       String result = apiInstance.testQueryStyleFormExplodeTrueArrayString(queryObject);
       System.out.println(result);
@@ -394,7 +396,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Successful operation |  -  |
 
-<a name="testQueryStyleFormExplodeTrueObject"></a>
+<a id="testQueryStyleFormExplodeTrueObject"></a>
 # **testQueryStyleFormExplodeTrueObject**
 > String testQueryStyleFormExplodeTrueObject(queryObject)
 
@@ -417,7 +419,7 @@ public class Example {
     defaultClient.setBasePath("http://localhost:3000");
 
     QueryApi apiInstance = new QueryApi(defaultClient);
-    Pet queryObject = new HashMap(); // Pet | 
+    Pet queryObject = new Pet(); // Pet | 
     try {
       String result = apiInstance.testQueryStyleFormExplodeTrueObject(queryObject);
       System.out.println(result);
@@ -456,7 +458,7 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Successful operation |  -  |
 
-<a name="testQueryStyleFormExplodeTrueObjectAllOf"></a>
+<a id="testQueryStyleFormExplodeTrueObjectAllOf"></a>
 # **testQueryStyleFormExplodeTrueObjectAllOf**
 > String testQueryStyleFormExplodeTrueObjectAllOf(queryObject)
 

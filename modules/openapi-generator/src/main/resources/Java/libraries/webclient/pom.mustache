@@ -79,6 +79,13 @@
             <version>${swagger-annotations-version}</version>
         </dependency>
         {{/swagger1AnnotationLibrary}}
+        {{#swagger2AnnotationLibrary}}
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>${swagger-annotations-version}</version>
+        </dependency>
+        {{/swagger2AnnotationLibrary}}
 
         <!-- @Nullable annotation -->
         <dependency>
@@ -154,9 +161,14 @@
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        {{#swagger1AnnotationLibrary}}
         <swagger-annotations-version>1.6.6</swagger-annotations-version>
-        <jackson-version>2.13.4</jackson-version>
-        <jackson-databind-version>2.13.4.2</jackson-databind-version>
+        {{/swagger1AnnotationLibrary}}
+        {{#swagger2AnnotationLibrary}}
+        <swagger-annotations-version>2.2.15</swagger-annotations-version>
+        {{/swagger2AnnotationLibrary}}
+        <jackson-version>2.15.2</jackson-version>
+        <jackson-databind-version>2.15.2</jackson-databind-version>
         {{#openApiNullable}}
         <jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
         {{/openApiNullable}}
