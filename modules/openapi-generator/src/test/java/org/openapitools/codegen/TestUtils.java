@@ -1,5 +1,6 @@
 package org.openapitools.codegen;
 
+import static org.junit.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 import static org.testng.Assert.assertTrue;
@@ -214,6 +215,18 @@ public class TestUtils {
                 assertTrue(file.contains(linearize(line)), "File does not contain line [" + line + "]");
         } catch (IOException e) {
             fail("Unable to evaluate file " + path);
+        }
+    }
+
+    public static void assertFileContentEquals(Path baseFile, Path resultFile) {
+        try {
+            String baseFileGenerated = linearize(Files.readString(baseFile));
+            String generatedFile = linearize(Files.readString(resultFile));
+            assertNotNull(generatedFile);
+            assertNotNull(baseFileGenerated);
+            assertEquals(baseFileGenerated, generatedFile);
+        } catch (IOException e) {
+            fail("Unable to evaluate files " + baseFile + " and " + resultFile);
         }
     }
 

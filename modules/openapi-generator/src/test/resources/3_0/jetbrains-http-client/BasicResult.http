@@ -1,0 +1,6 @@
+## BasicApi
+
+### Get User
+## Get User Info by User ID
+# @name getUsersUserId
+GET http://localhost:5001/v1/users/{{userId}}
