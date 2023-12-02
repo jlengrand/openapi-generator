@@ -6,6 +6,10 @@
 ## {{#notes}}{{notes}}{{/notes}}
 # @name {{operationId}}
 {{httpMethod}} {{basePath}}{{#lambda.doubleMustache}}{{path}}{{/lambda.doubleMustache}}
+{{#authMethods}}{{#isBasicBasic}}Authorization: Basic {{#lambda.doubleMustache}}{username}{{/lambda.doubleMustache}} {{#lambda.doubleMustache}}{password}{{/lambda.doubleMustache}}
+{{/isBasicBasic}}{{#isBasicBearer}}Authorization: {{#lambda.doubleMustache}}{token}{{/lambda.doubleMustache}}
+{{/isBasicBearer}}{{#isApiKey}}{{keyParamName}} {{#lambda.doubleMustache}}{apiKey}{{/lambda.doubleMustache}}
+{{/isApiKey}}{{/authMethods}}
 {{#consumes}}Content-Type: {{{mediaType}}}
 {{/consumes}}
 {{#bodyParams}}
