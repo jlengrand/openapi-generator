@@ -1,0 +1,5 @@
+.openapi-generator-ignore
+Apis/PetApi.http
+Apis/StoreApi.http
+Apis/UserApi.http
+README.md

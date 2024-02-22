@@ -1,0 +1,6 @@
+generatorName: curl
+outputDir: samples/client/adyen/curl
+inputSpec: modules/openapi-generator/src/test/resources/3_1/CheckoutService-v71.yaml
+templateDir: modules/openapi-generator/src/main/resources/curl
+additionalProperties:
+  hideGenerationTimestamp: "true"

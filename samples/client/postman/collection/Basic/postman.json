@@ -1,0 +1,75 @@
+{
+	"info": {
+		"name": "Basic",
+		"description": {
+		    "content": "Sample API",
+		    "type": "text/markdown"
+		},
+		"version": "1.0",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+	        {
+	            "name": "basic",
+	            "item": [
+	                        {
+    "name": "/users/:userId",
+                "description": "Get User Info by User ID",
+                 "item": [
+                            {
+                                "name": "Get User",
+                                "request": {
+                                    "method": "GET",
+                                    "header": [
+                                        {
+                                            "key": "Accept",
+                                            "value": "application/json",
+                                            "disabled": false
+                                        }
+                                    ],
+                                    "body": {
+                                        "mode": "raw",
+                                        "raw": "",
+                                        "options": {
+                                            "raw": {
+                                                "language": "json"
+                                            }
+                                        }
+                                    },
+                                    "url": {
+                                        "raw": "{{baseUrl}}/users/:userId",
+                                        "host": [
+                                            "{{baseUrl}}"
+                                        ],
+                                        "path": [
+                                            "users",
+                                            ":userId"
+                                        ],
+                                        "variable": [
+                                            {
+                                                "key": "userId",
+                                                "value": "",
+                                                "description": "Unique identifier of the user"
+                                            }
+                                        ],
+                                        "query": [
+                                        ]
+                                    },
+                                    "description": "Get User Info by User ID"
+                                }
+                            }
+                            ]
+                        }
+	                    ]
+	        }
+    ],
+    
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5001",
+			"type": "string"
+        }
+	]
+}
+
