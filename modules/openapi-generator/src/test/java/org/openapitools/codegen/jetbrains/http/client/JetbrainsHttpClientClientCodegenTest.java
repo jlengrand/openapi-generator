@@ -403,7 +403,7 @@ public class JetbrainsHttpClientClientCodegenTest {
     }
 
     @Test
-    @Ignore
+    @Ignore // For some reason this test fails during Docker image generation. Investigate one day.
     public void testBasicGenerationMultipleRequests() throws IOException {
         // Checking that each request example is present in the output file
         File output = Files.createTempDirectory("jetbrainstest_").toFile();
